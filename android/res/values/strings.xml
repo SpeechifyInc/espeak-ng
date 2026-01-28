@@ -74,6 +74,7 @@
   <string name="enter_text_hint">Type the text you want to convert to phonemes</string>
   <string name="enter_text_prompt">Please enter some text first</string>
   <string name="phoneme_output_label">Phoneme output</string>
+  <string name="phoneme_pairs_label">Phoneme to id pairs</string>
   <string name="use_ipa">Use IPA output</string>
   <string name="conversion_failed">Conversion failed</string>
   <string name="espeak_volume">Volume</string>

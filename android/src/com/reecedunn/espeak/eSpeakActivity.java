@@ -22,12 +22,16 @@ import java.util.Locale;
 
 public class eSpeakActivity extends Activity {
     private static final int REQUEST_DOWNLOAD = 100;
+    private static final String PRIMARY_VOICE_ID = "en-us";
+    private static final String FALLBACK_VOICE_ID = "en";
 
     private SpeechSynthesis mSynthesis;
     private EditText mInput;
     private CheckBox mUseIpa;
     private TextView mOutput;
+    private TextView mOutputPairs;
     private Button mConvert;
+    private PhonemeMapper mMapper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,10 +41,16 @@ public class eSpeakActivity extends Activity {
         mInput = (EditText)findViewById(R.id.editText1);
         mUseIpa = (CheckBox)findViewById(R.id.checkbox_ipa);
         mOutput = (TextView)findViewById(R.id.outputPhonemes);
+        mOutputPairs = (TextView)findViewById(R.id.outputPairs);
         mConvert = (Button)findViewById(R.id.convert);
 
         Context storageContext = EspeakApp.getStorageContext();
         mSynthesis = new SpeechSynthesis(storageContext, null);
+        try {
+            mMapper = PhonemeMapper.fromAssets(this, "vitsMapper.json");
+        } catch (Exception e) {
+            mMapper = null;
+        }
         if (!ensureVoiceData(storageContext)) {
             mConvert.setEnabled(false);
         } else {
@@ -62,6 +72,12 @@ public class eSpeakActivity extends Activity {
     private void selectEnglishVoice() {
         if (!mSynthesis.isInitialized()) {
             Toast.makeText(this, R.string.conversion_failed, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (mSynthesis.setVoiceByName(PRIMARY_VOICE_ID)) {
+            return;
+        }
+        if (mSynthesis.setVoiceByName(FALLBACK_VOICE_ID)) {
             return;
         }
         List<Voice> voices = mSynthesis.getAvailableVoices();
@@ -92,6 +108,9 @@ public class eSpeakActivity extends Activity {
             return;
         }
 
+        // Ensure English voice is selected before each conversion.
+        selectEnglishVoice();
+
         final boolean useIpa = mUseIpa.isChecked();
         final String phonemes = mSynthesis.textToPhonemes(text, useIpa);
         if (phonemes == null) {
@@ -99,6 +118,12 @@ public class eSpeakActivity extends Activity {
             return;
         }
         mOutput.setText(phonemes);
+
+        if (mMapper != null) {
+            mOutputPairs.setText(mMapper.formatPairs(phonemes));
+        } else {
+            mOutputPairs.setText("");
+        }
     }
 
     private boolean ensureVoiceData(Context storageContext) {
