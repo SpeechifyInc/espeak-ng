@@ -52,28 +52,59 @@ public class PhonemeMapper {
     }
 
     public String formatPairs(String phonemeString) {
-        if (phonemeString == null) {
-            return "";
-        }
-        String trimmed = phonemeString.trim();
-        if (trimmed.length() == 0) {
+        if (phonemeString == null || phonemeString.length() == 0) {
             return "";
         }
 
-        String[] tokens = trimmed.split("\\s+");
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < tokens.length; i++) {
-            String token = tokens[i];
-            if (token.length() == 0) {
-                continue;
-            }
-            Integer id = symbolToId.get(token);
+        int index = 0;
+        while (index < phonemeString.length()) {
+            int codePoint = phonemeString.codePointAt(index);
+            String symbol = new String(Character.toChars(codePoint));
+            Integer id = symbolToId.get(symbol);
             if (builder.length() > 0) {
                 builder.append('\n');
             }
-            builder.append(token).append(" -> ").append(id == null ? -1 : id.intValue());
+            builder.append(displaySymbol(symbol)).append(" -> ").append(id == null ? -1 : id.intValue());
+            index += Character.charCount(codePoint);
         }
         return builder.toString();
+    }
+
+    public static String formatWithMarkers(String phonemeString) {
+        if (phonemeString == null || phonemeString.length() == 0) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append('^');
+        builder.append('_');
+        int index = 0;
+        boolean first = true;
+        while (index < phonemeString.length()) {
+            int codePoint = phonemeString.codePointAt(index);
+            if (!first) {
+                builder.append('_');
+            }
+            builder.appendCodePoint(codePoint);
+            first = false;
+            index += Character.charCount(codePoint);
+        }
+        builder.append('_');
+        builder.append('$');
+        return builder.toString();
+    }
+
+    private static String displaySymbol(String symbol) {
+        if (" ".equals(symbol)) {
+            return "[space]";
+        }
+        if ("\n".equals(symbol)) {
+            return "[newline]";
+        }
+        if ("\t".equals(symbol)) {
+            return "[tab]";
+        }
+        return symbol;
     }
 
     private static String readAll(InputStream stream) throws IOException {

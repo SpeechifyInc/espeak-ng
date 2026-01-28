@@ -112,18 +112,73 @@ public class eSpeakActivity extends Activity {
         selectEnglishVoice();
 
         final boolean useIpa = mUseIpa.isChecked();
-        final String phonemes = mSynthesis.textToPhonemes(text, useIpa);
+        final String phonemes = convertPreservingPunctuation(text, useIpa);
         if (phonemes == null) {
             Toast.makeText(this, R.string.conversion_failed, Toast.LENGTH_SHORT).show();
             return;
         }
-        mOutput.setText(phonemes);
+        final String formatted = PhonemeMapper.formatWithMarkers(phonemes);
+        mOutput.setText(formatted);
 
         if (mMapper != null) {
-            mOutputPairs.setText(mMapper.formatPairs(phonemes));
+            mOutputPairs.setText(mMapper.formatPairs(formatted));
         } else {
             mOutputPairs.setText("");
         }
+    }
+
+    private String convertPreservingPunctuation(String text, boolean useIpa) {
+        if (text == null) {
+            return "";
+        }
+
+        StringBuilder output = new StringBuilder();
+        StringBuilder word = new StringBuilder();
+        boolean lastWasSpace = false;
+
+        int index = 0;
+        while (index < text.length()) {
+            int codePoint = text.codePointAt(index);
+            if (Character.isLetterOrDigit(codePoint) || codePoint == '\'') {
+                word.appendCodePoint(codePoint);
+                lastWasSpace = false;
+            } else if (Character.isWhitespace(codePoint)) {
+                if (word.length() > 0) {
+                    String phonemes = mSynthesis.textToPhonemes(word.toString(), useIpa);
+                    if (phonemes == null) {
+                        return null;
+                    }
+                    output.append(phonemes);
+                    word.setLength(0);
+                }
+                if (!lastWasSpace && output.length() > 0) {
+                    output.append(' ');
+                    lastWasSpace = true;
+                }
+            } else {
+                if (word.length() > 0) {
+                    String phonemes = mSynthesis.textToPhonemes(word.toString(), useIpa);
+                    if (phonemes == null) {
+                        return null;
+                    }
+                    output.append(phonemes);
+                    word.setLength(0);
+                }
+                output.appendCodePoint(codePoint);
+                lastWasSpace = false;
+            }
+            index += Character.charCount(codePoint);
+        }
+
+        if (word.length() > 0) {
+            String phonemes = mSynthesis.textToPhonemes(word.toString(), useIpa);
+            if (phonemes == null) {
+                return null;
+            }
+            output.append(phonemes);
+        }
+
+        return output.toString();
     }
 
     private boolean ensureVoiceData(Context storageContext) {

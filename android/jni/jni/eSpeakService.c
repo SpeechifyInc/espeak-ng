@@ -346,9 +346,8 @@ JNICALL Java_com_reecedunn_espeak_SpeechSynthesis_nativeTextToPhonemes(
   const char *utf8 = (*env)->GetStringUTFChars(env, text, NULL);
   const void *textptr = utf8;
 
-  // Separator is a single space (bits 8-23 hold separator char).
+  // No phoneme separator; caller can insert word boundaries explicitly.
   int phoneme_mode = useIpa ? espeakPHONEMES_IPA : 0;
-  phoneme_mode |= (' ' << 8);
 
   size_t capacity = 256;
   size_t length = 0;
