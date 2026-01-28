@@ -16,29 +16,14 @@
  * limitations under the License.
  */
 
-/*
- * This Activity is used by Android to get the list of languages to display
- * to the user when selecting the text-to-speech language. This is by locale,
- * not voice name.
- */
-
 package com.reecedunn.espeak;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
-import android.speech.tts.TextToSpeech.Engine;
 import android.util.Log;
 
-import com.reecedunn.espeak.SpeechSynthesis.SynthReadyCallback;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
-public class CheckVoiceData extends Activity {
+public final class CheckVoiceData {
     private static final String TAG = "eSpeakTTS";
 
     /** Resources required for eSpeak to run correctly. */
@@ -52,7 +37,7 @@ public class CheckVoiceData extends Activity {
     };
 
     public static File getDataPath(Context context) {
-        return new File(context.getDir("voices", MODE_PRIVATE), "espeak-ng-data");
+        return new File(context.getDir("voices", Context.MODE_PRIVATE), "espeak-ng-data");
     }
 
     public static boolean hasBaseResources(Context context) {
@@ -79,51 +64,4 @@ public class CheckVoiceData extends Activity {
             return false;
         }
     }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        Context storageContext = EspeakApp.getStorageContext();
-        ArrayList<String> availableLanguages = new ArrayList<String>();
-        ArrayList<String> unavailableLanguages = new ArrayList<String>();
-
-        boolean haveBaseResources = hasBaseResources(storageContext);
-        if (!haveBaseResources || canUpgradeResources(storageContext)) {
-            if (!haveBaseResources) {
-                unavailableLanguages.add(Locale.ENGLISH.toString());
-            }
-            returnResults(Engine.CHECK_VOICE_DATA_FAIL, availableLanguages, unavailableLanguages);
-            return;
-        }
-
-        final SpeechSynthesis engine = new SpeechSynthesis(storageContext, mSynthReadyCallback);
-        final List<Voice> voices = engine.getAvailableVoices();
-
-        for (Voice voice : voices) {
-            availableLanguages.add(voice.toString());
-        }
-
-        returnResults(Engine.CHECK_VOICE_DATA_PASS, availableLanguages, unavailableLanguages);
-    }
-
-    private void returnResults(int result, ArrayList<String> availableLanguages, ArrayList<String> unavailableLanguages) {
-        final Intent returnData = new Intent();
-        returnData.putStringArrayListExtra(Engine.EXTRA_AVAILABLE_VOICES, availableLanguages);
-        returnData.putStringArrayListExtra(Engine.EXTRA_UNAVAILABLE_VOICES, unavailableLanguages);
-        setResult(result, returnData);
-        finish();
-    }
-
-    private final SynthReadyCallback mSynthReadyCallback = new SynthReadyCallback() {
-        @Override
-        public void onSynthDataReady(byte[] audioData) {
-            // Do nothing.
-        }
-
-        @Override
-        public void onSynthDataComplete() {
-            // Do nothing.
-        }
-    };
 }

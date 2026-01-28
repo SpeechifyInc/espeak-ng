@@ -12,7 +12,7 @@ plugins {
 }
 
 import org.gradle.crypto.checksum.Checksum
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 repositories {
     google()
@@ -22,7 +22,10 @@ repositories {
 
 dependencies {
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'org.hamcrest:hamcrest-all:1.3'
+    // hamcrest-core is already pulled by junit; avoid duplicate classes.
+    androidTestImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
 }
 
 android {
@@ -38,8 +41,7 @@ android {
     defaultConfig {
         minSdk 21
         targetSdk 33
-        versionCode 22
-        versionName "1.52.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
             cmake {

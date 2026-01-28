@@ -94,6 +94,23 @@ public class PhonemeMapper {
         return builder.toString();
     }
 
+    public int[] mapToIds(String phonemeString) {
+        if (phonemeString == null || phonemeString.length() == 0) {
+            return new int[0];
+        }
+        int[] ids = new int[phonemeString.codePointCount(0, phonemeString.length())];
+        int index = 0;
+        int out = 0;
+        while (index < phonemeString.length()) {
+            int codePoint = phonemeString.codePointAt(index);
+            String symbol = new String(Character.toChars(codePoint));
+            Integer id = symbolToId.get(symbol);
+            ids[out++] = id == null ? -1 : id.intValue();
+            index += Character.charCount(codePoint);
+        }
+        return ids;
+    }
+
     private static String displaySymbol(String symbol) {
         if (" ".equals(symbol)) {
             return "[space]";
