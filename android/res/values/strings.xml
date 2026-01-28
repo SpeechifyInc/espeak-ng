@@ -69,7 +69,13 @@
   <string name="tts_version">eSpeak version</string>
   <string name="speak">Speak</string>
   <string name="ssml">Load SSML Template</string>
-  <string name="synthesis_demo">Enter text to speak:</string>
+  <string name="synthesis_demo">Enter text to convert:</string>
+  <string name="convert">Convert</string>
+  <string name="enter_text_hint">Type the text you want to convert to phonemes</string>
+  <string name="enter_text_prompt">Please enter some text first</string>
+  <string name="phoneme_output_label">Phoneme output</string>
+  <string name="use_ipa">Use IPA output</string>
+  <string name="conversion_failed">Conversion failed</string>
   <string name="espeak_volume">Volume</string>
   <string name="formatter_wpm">%s WPM</string>
   <string name="formatter_percentage">%s%%</string>

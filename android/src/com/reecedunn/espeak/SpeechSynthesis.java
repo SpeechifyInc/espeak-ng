@@ -178,8 +178,22 @@ public class SpeechSynthesis {
         }
     }
 
+    /**
+     * Whether the native library has been initialized successfully.
+     */
+    public boolean isInitialized() {
+        return mInitialized;
+    }
+
     public void setPunctuationCharacters(String characters) {
         nativeSetPunctuationCharacters(characters);
+    }
+
+    /**
+     * Convenience helper for switching voices by identifier (e.g. "en-us").
+     */
+    public boolean setVoiceByName(String name) {
+        return nativeSetVoiceByName(name);
     }
 
     /** Don't announce any punctuation characters. */
@@ -263,6 +277,20 @@ public class SpeechSynthesis {
         nativeStop();
     }
 
+    /**
+     * Convert arbitrary text to a phoneme string using the current voice.
+     *
+     * @param text The input text to convert.
+     * @param useIpa If true, return IPA symbols; otherwise return eSpeak ASCII phonemes.
+     * @return Phoneme sequence for the text, or null if conversion failed.
+     */
+    public String textToPhonemes(String text, boolean useIpa) {
+        if (!attemptInit()) {
+            return null;
+        }
+        return nativeTextToPhonemes(text, useIpa);
+    }
+
     private void nativeSynthCallback(byte[] audioData) {
         if (mCallback == null)
             return;
@@ -274,25 +302,26 @@ public class SpeechSynthesis {
         }
     }
 
-    private void attemptInit() {
+    private boolean attemptInit() {
         if (mInitialized) {
-            return;
+            return true;
         }
 
         if (!CheckVoiceData.hasBaseResources(mContext)) {
             Log.e(TAG, "Missing base resources");
-            return;
+            return false;
         }
 
         mSampleRate = nativeCreate(mDatapath);
         if (mSampleRate == 0) {
             Log.e(TAG, "Failed to initialize speech synthesis library");
-            return;
+            return false;
         }
 
         Log.i(TAG, "Initialized synthesis library with sample rate = " + getSampleRate());
 
         mInitialized = true;
+        return true;
     }
 
     public static String getSampleText(Context context, Locale locale) {
@@ -324,6 +353,8 @@ public class SpeechSynthesis {
     private native final int nativeGetParameter(int parameter, int current);
 
     private native final boolean nativeSetPunctuationCharacters(String characters);
+
+    private native final String nativeTextToPhonemes(String text, boolean useIpa);
 
     private native final boolean nativeSynthesize(String text, boolean isSsml);
 

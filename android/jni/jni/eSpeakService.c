@@ -338,6 +338,60 @@ JNICALL Java_com_reecedunn_espeak_SpeechSynthesis_nativeStop(
   return JNI_TRUE;
 }
 
+JNIEXPORT jstring
+JNICALL Java_com_reecedunn_espeak_SpeechSynthesis_nativeTextToPhonemes(
+    JNIEnv *env, jobject object, jstring text, jboolean useIpa) {
+  if (text == NULL) return NULL;
+
+  const char *utf8 = (*env)->GetStringUTFChars(env, text, NULL);
+  const void *textptr = utf8;
+
+  // Separator is a single space (bits 8-23 hold separator char).
+  int phoneme_mode = useIpa ? espeakPHONEMES_IPA : 0;
+  phoneme_mode |= (' ' << 8);
+
+  size_t capacity = 256;
+  size_t length = 0;
+  char *buffer = (char *)malloc(capacity);
+  if (buffer == NULL) {
+    (*env)->ReleaseStringUTFChars(env, text, utf8);
+    return NULL;
+  }
+  buffer[0] = '\0';
+
+  while (textptr != NULL && *((const char *)textptr) != '\0') {
+    const char *chunk = espeak_TextToPhonemes(&textptr, espeakCHARS_UTF8, phoneme_mode);
+    if (chunk == NULL) break;
+
+    size_t chunk_len = strlen(chunk);
+    if (length + chunk_len + 2 > capacity) { // +1 for potential space, +1 for terminator
+      capacity = (length + chunk_len + 2) * 2;
+      char *next = (char *)realloc(buffer, capacity);
+      if (next == NULL) {
+        free(buffer);
+        (*env)->ReleaseStringUTFChars(env, text, utf8);
+        return NULL;
+      }
+      buffer = next;
+    }
+
+    memcpy(buffer + length, chunk, chunk_len);
+    length += chunk_len;
+
+    // If there is more text to process, append a space separator.
+    if (textptr != NULL && *((const char *)textptr) != '\0') {
+      buffer[length++] = ' ';
+    }
+  }
+
+  buffer[length] = '\0';
+  jstring result = (*env)->NewStringUTF(env, buffer);
+
+  free(buffer);
+  (*env)->ReleaseStringUTFChars(env, text, utf8);
+  return result;
+}
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
