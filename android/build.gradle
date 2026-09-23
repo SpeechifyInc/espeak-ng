@@ -31,7 +31,7 @@ dependencies {
 android {
     compileSdk 34
     buildToolsVersion "34.0.0"
-    ndkVersion "26.1.10909125"
+    ndkVersion "28.2.13676358"
     namespace "com.reecedunn.espeak"
 
     buildFeatures {
@@ -42,6 +42,10 @@ android {
         minSdk 21
         targetSdk 33
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a", "x86", "x86_64"
+        }
 
         externalNativeBuild {
             cmake {
@@ -94,6 +98,10 @@ tasks.register('createDataArchive', Zip) {
     destinationDirectory = file("res/raw")
 
     from("build/generated/espeak-ng-data/") {
+        // The Android phonemizer uses English; retain shared phoneme and voice data.
+        exclude { details ->
+            details.name.endsWith("_dict") && details.name != "en_dict"
+        }
         into "espeak-ng-data"
     }
 }
