@@ -242,7 +242,7 @@ static Translator *NewTranslator(void)
 		 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 55,  0, 56,  0, 57,  0, // 0x170
 	};
 
-	if ((tr = (Translator *)malloc(sizeof(Translator))) == NULL)
+	if ((tr = (Translator *)calloc(1, sizeof(Translator))) == NULL)
 		return NULL;
 
 	tr->encoding = ESPEAKNG_ENCODING_ISO_8859_1;
