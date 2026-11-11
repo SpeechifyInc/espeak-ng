@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos]
+        os: [ubuntu]  # macOS runners are not available in the SpeechifyInc org
         arch: [amd64, i386, aarch64, arm, riscv64]
         config: [debug, release, release-dyn, asan, lsan, msan, tsan, ubsan, valgrind]
         compiler: [gcc, clang]
@@ -24,12 +24,6 @@ jobs:
           - os: ubuntu
             osver: 22.04
             sys: linux-gnu
-          - os: macos
-            osver: 14
-            sys: apple-darwin23
-          - os: macos
-            compiler: clang
-            sys: apple-darwin23.6.0
 
           - compiler: clang
             compiler_flags: "-fdebug-default-version=4"
@@ -90,34 +84,8 @@ jobs:
             settings: "-DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DBUILD_SHARED_LIBS:BOOL=ON"
           
         exclude:
-          - os: macos
-            arch: i386
-          - os: macos
-            arch: aarch64
-          - os: macos
-            arch: arm
-          - os: macos
-            arch: riscv64
-
-          # fixme
-          - os: macos
-            compiler: gcc
-
-          - os: macos
-            config: valgrind # Not supported on macOS
-
           - compiler: gcc
             config: msan # Not supported by GCC
-
-          - os: macos
-            compiler: clang
-            config: lsan # Not supported by Apple Clang
-          - os: macos
-            compiler: clang
-            config: msan # Not supported by Apple Clang
-          - os: macos
-            compiler: gcc
-            config: tsan # Failing on CI, should be supported?
 
           # Valgrind is unavailable for cross-builds
           - arch: aarch64

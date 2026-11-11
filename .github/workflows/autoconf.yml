@@ -15,22 +15,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos]
+        os: [ubuntu]  # macOS runners are not available in the SpeechifyInc org
         arch: [amd64, i386]
         compiler: [gcc, clang]
 
         include:
           - os: ubuntu
             osver: 22.04
-          - os: macos
-            osver: 14
 
           - arch: i386
             archcflags: "-m32 -msse2 -mfpmath=sse"
-
-        exclude:
-          - os: macos
-            arch: i386
 
     steps:
 
